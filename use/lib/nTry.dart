@@ -1,6 +1,6 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import './identifyDemo.dart';
+import 'package:flutter/rendering.dart';
 
 void main() {
   runApp(MyApp());
@@ -26,23 +26,20 @@ class ScaffoldRoute extends StatefulWidget {
 }
 
 class _ScaffoldRouteState extends State<ScaffoldRoute> {
-  // globalKey获取列表renderBox
-  final GlobalKey _listKey = GlobalKey();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar( //导航栏
         title: Text("Demo"),
       ),
-      body: List(key: _listKey,),  // globalKey传给列表
-      floatingActionButton: Drag(listKey: _listKey),  // 可拖拉悬浮按钮  globalKey传给按钮
+      body: List(),  // globalKey传给列表
+      floatingActionButton: Drag(),  // 可拖拉悬浮按钮  globalKey传给按钮
     );
   }
 }
 
 class List extends StatefulWidget {
-  const List({super.key});
+  List({super.key});
 
   @override
   State<List> createState() => _ListState();
@@ -79,8 +76,7 @@ class _ListState extends State<List> {
 
 // 可拖拉按钮
 class Drag extends StatefulWidget {
-  final GlobalKey listKey;
-  const Drag({super.key, required this.listKey});
+  const Drag({super.key});
 
   @override
   _DragState createState() => _DragState();
@@ -105,13 +101,22 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
             behavior: HitTestBehavior.translucent,
             onTap: () {  // 点击事件
               print("识别到遮罩层onTap");
-              // todo 点击开启识别功能
               },
             onTapDown: (TapDownDetails details) {
               // todo 确定用户点击的位置是否在列表范围内
               final tapPosition = details.globalPosition;
               WidgetsBinding.instance.renderView.hitTest(hitTestResult, position: tapPosition);
-              print("widget信息为：${hitTestResult.path.first}【END】");  // 最外层的widget
+
+              // 获取最上层的组件
+              var pathLen = hitTestResult.path.toList().length;
+              final HitTestEntry topmostEntry = hitTestResult.path.toList()[pathLen - 1];
+              final RenderView renderView = topmostEntry.target as RenderView;
+              final RenderBox? renderBox = renderView.child;
+              final Rect bounds = renderView.paintBounds;  // 边界
+              final Size size = renderView.size;  // 大小
+              final Offset? position = renderBox?.localToGlobal(Offset.zero);  // 位置
+
+              print("【widget】大小：${size}, 边界：${bounds}, 位置：${position}");
               },
             onLongPress: () { // 长按遮罩消失
               _overlayEntry.remove();
@@ -142,9 +147,6 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
             onPanDown: (DragDownDetails e) {
               //打印手指按下的位置(相对于屏幕)
               print("用户手指按下：${e.globalPosition}");
-              final tapPosition = e.globalPosition;
-              WidgetsBinding.instance.renderView.hitTest(hitTestResult, position: tapPosition);
-              print("长宽信息为：${hitTestResult.path.first}【END】");
             },
             //手指滑动时会触发此回调
             onPanUpdate: (DragUpdateDetails e) {
