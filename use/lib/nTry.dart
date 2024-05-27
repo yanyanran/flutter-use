@@ -19,6 +19,8 @@ class MyApp extends StatelessWidget {
   }
 }
 
+final GlobalKey<_DragState> key = GlobalKey<_DragState>();
+
 // 大页面骨架
 class ScaffoldRoute extends StatefulWidget {
   @override
@@ -29,11 +31,12 @@ class _ScaffoldRouteState extends State<ScaffoldRoute> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: key,
       appBar: AppBar( //导航栏
         title: Text("Demo"),
       ),
       body: List(),  // globalKey传给列表
-      floatingActionButton: Drag(),  // 可拖拉悬浮按钮  globalKey传给按钮
+      floatingActionButton: Drag(key),  // 可拖拉悬浮按钮  globalKey传给按钮
     );
   }
 }
@@ -55,7 +58,7 @@ class _ListState extends State<List> {
           return ListTile(
             leading: const Icon(Icons.people, color: Colors.blue),
             title: Text(
-              "$index  列表标题",
+              "$index  列表标题----",
               style: TextStyle(color: Colors.blue),
             ),
             trailing: const Icon(
@@ -76,7 +79,7 @@ class _ListState extends State<List> {
 
 // 可拖拉按钮
 class Drag extends StatefulWidget {
-  const Drag({super.key});
+  const Drag(GlobalKey<_DragState> key);
 
   @override
   _DragState createState() => _DragState();
@@ -86,10 +89,10 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
   double _top = 700.0; //距顶部的偏移
   double _left = 320.0;//距左边的偏移
   late OverlayEntry _overlayEntry;
-  HitTestResult hitTestResult = HitTestResult();
+  BoxHitTestResult BoxhitTestResult = BoxHitTestResult();
 
   // 全屏遮罩
-  void _showOverlay() {
+  void _showOverlay(GlobalKey<_DragState> key) {
     _overlayEntry = OverlayEntry(
       builder: (context) {
         return Positioned(
@@ -104,19 +107,29 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
               },
             onTapDown: (TapDownDetails details) {
               // todo 确定用户点击的位置是否在列表范围内
+              BoxhitTestResult = BoxHitTestResult(); // 清空
               final tapPosition = details.globalPosition;
-              WidgetsBinding.instance.renderView.hitTest(hitTestResult, position: tapPosition);
+              //WidgetsBinding.instance.renderView.hitTest(BoxhitTestResult, position: tapPosition);
+              final box = key.currentContext?.findRenderObject() as RenderBox;
+              box.hitTest(BoxhitTestResult, position: tapPosition);
 
               // 获取最上层的组件
-              var pathLen = hitTestResult.path.toList().length;
-              final HitTestEntry topmostEntry = hitTestResult.path.toList()[pathLen - 1];
-              final RenderView renderView = topmostEntry.target as RenderView;
-              final RenderBox? renderBox = renderView.child;
-              final Rect bounds = renderView.paintBounds;  // 边界
-              final Size size = renderView.size;  // 大小
-              final Offset? position = renderBox?.localToGlobal(Offset.zero);  // 位置
+              final HitTestEntry topmostEntry = BoxhitTestResult.path.toList()[0];
 
-              print("【widget】大小：${size}, 边界：${bounds}, 位置：${position}");
+              // todo 加一个文字判断处理
+              if (topmostEntry.target is TextSpan) {
+                final TextPainter textPainter = TextPainter(
+                    textDirection: TextDirection.ltr,
+                    text: topmostEntry.target as InlineSpan, maxLines:  2^31)
+                  ..layout(maxWidth: double.infinity);
+                print("【识别到文字】大小：${textPainter.size}");
+              } else {
+                final RenderBox render = topmostEntry.target as RenderBox;
+                final Rect bounds = render.paintBounds;  // 边界
+                final Size size = render.size;  // 大小
+                final Offset position = render.localToGlobal(Offset.zero);  // 位置
+                print("【widget】大小：${size}, 边界：${bounds}, 位置：${position}");
+              }
               },
             onLongPress: () { // 长按遮罩消失
               _overlayEntry.remove();
@@ -163,7 +176,7 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
             onTap: () {
               setState(() {
                 print("识别到onTap事件");
-                _showOverlay();
+                _showOverlay(key);
               });
             },
           ),
