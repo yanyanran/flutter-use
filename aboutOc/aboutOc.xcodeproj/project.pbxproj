@@ -17,6 +17,8 @@
 		BE3C21992C008B4E009E019D /* aboutOcTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BE3C21982C008B4E009E019D /* aboutOcTests.m */; };
 		BE3C21A32C008B4E009E019D /* aboutOcUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = BE3C21A22C008B4E009E019D /* aboutOcUITests.m */; };
 		BE3C21A52C008B4E009E019D /* aboutOcUITestsLaunchTests.m in Sources */ = {isa = PBXBuildFile; fileRef = BE3C21A42C008B4E009E019D /* aboutOcUITestsLaunchTests.m */; };
+		BE3C21B52C05F32D009E019D /* LRUCache.m in Sources */ = {isa = PBXBuildFile; fileRef = BE3C21B42C05F32D009E019D /* LRUCache.m */; };
+		BE3C21B82C06028D009E019D /* List.m in Sources */ = {isa = PBXBuildFile; fileRef = BE3C21B72C06028D009E019D /* List.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,6 +56,11 @@
 		BE3C219E2C008B4E009E019D /* aboutOcUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = aboutOcUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		BE3C21A22C008B4E009E019D /* aboutOcUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = aboutOcUITests.m; sourceTree = "<group>"; };
 		BE3C21A42C008B4E009E019D /* aboutOcUITestsLaunchTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = aboutOcUITestsLaunchTests.m; sourceTree = "<group>"; };
+		BE3C21B12C04297C009E019D /* main.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = main.h; sourceTree = "<group>"; };
+		BE3C21B32C05F1B0009E019D /* LRUCache.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = LRUCache.h; sourceTree = "<group>"; };
+		BE3C21B42C05F32D009E019D /* LRUCache.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = LRUCache.m; sourceTree = "<group>"; };
+		BE3C21B72C06028D009E019D /* List.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = List.m; sourceTree = "<group>"; };
+		BE3C21B92C060413009E019D /* List.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = List.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +111,8 @@
 		BE3C217B2C008B4C009E019D /* aboutOc */ = {
 			isa = PBXGroup;
 			children = (
+				BE3C21B62C060278009E019D /* List */,
+				BE3C21B22C05F195009E019D /* oc-LRU */,
 				BE3C217C2C008B4C009E019D /* AppDelegate.h */,
 				BE3C217D2C008B4C009E019D /* AppDelegate.m */,
 				BE3C217F2C008B4C009E019D /* SceneDelegate.h */,
@@ -115,6 +124,7 @@
 				BE3C218A2C008B4E009E019D /* LaunchScreen.storyboard */,
 				BE3C218D2C008B4E009E019D /* Info.plist */,
 				BE3C218E2C008B4E009E019D /* main.m */,
+				BE3C21B12C04297C009E019D /* main.h */,
 			);
 			path = aboutOc;
 			sourceTree = "<group>";
@@ -134,6 +144,24 @@
 				BE3C21A42C008B4E009E019D /* aboutOcUITestsLaunchTests.m */,
 			);
 			path = aboutOcUITests;
+			sourceTree = "<group>";
+		};
+		BE3C21B22C05F195009E019D /* oc-LRU */ = {
+			isa = PBXGroup;
+			children = (
+				BE3C21B32C05F1B0009E019D /* LRUCache.h */,
+				BE3C21B42C05F32D009E019D /* LRUCache.m */,
+			);
+			path = "oc-LRU";
+			sourceTree = "<group>";
+		};
+		BE3C21B62C060278009E019D /* List */ = {
+			isa = PBXGroup;
+			children = (
+				BE3C21B72C06028D009E019D /* List.m */,
+				BE3C21B92C060413009E019D /* List.h */,
+			);
+			path = List;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -268,6 +296,8 @@
 			files = (
 				BE3C21842C008B4C009E019D /* ViewController.m in Sources */,
 				BE3C217E2C008B4C009E019D /* AppDelegate.m in Sources */,
+				BE3C21B52C05F32D009E019D /* LRUCache.m in Sources */,
+				BE3C21B82C06028D009E019D /* List.m in Sources */,
 				BE3C218F2C008B4E009E019D /* main.m in Sources */,
 				BE3C21812C008B4C009E019D /* SceneDelegate.m in Sources */,
 			);
