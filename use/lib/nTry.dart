@@ -91,6 +91,31 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
   late OverlayEntry _overlayEntry;
   BoxHitTestResult BoxhitTestResult = BoxHitTestResult();
 
+  // 确定用户点击的位置是否在列表范围内
+  void _inspector(TapDownDetails details) {
+    BoxhitTestResult = BoxHitTestResult(); // 清空
+    final tapPosition = details.globalPosition;
+    //WidgetsBinding.instance.renderView.hitTest(BoxhitTestResult, position: tapPosition);
+    final box = key.currentContext?.findRenderObject() as RenderBox;
+    box.hitTest(BoxhitTestResult, position: tapPosition);
+    final HitTestEntry topmostEntry = BoxhitTestResult.path.toList()[0];  // 获取最上层的组件
+
+    // todo 加一个文字判断处理
+    if (topmostEntry.target is TextSpan) {
+      final TextPainter textPainter = TextPainter(
+          textDirection: TextDirection.ltr,
+          text: topmostEntry.target as InlineSpan, maxLines:  2^31)
+        ..layout(maxWidth: double.infinity);
+      print("【识别到文字】大小：${textPainter.size}");
+    } else {
+      final RenderBox render = topmostEntry.target as RenderBox;
+      final Rect bounds = render.paintBounds;  // 边界
+      final Size size = render.size;  // 大小
+      final Offset position = render.localToGlobal(Offset.zero);  // 位置
+      print("【widget】大小：${size}, 边界：${bounds}, 位置：${position}");
+    }
+  }
+
   // 全屏遮罩
   void _showOverlay(GlobalKey<_DragState> key) {
     _overlayEntry = OverlayEntry(
@@ -106,30 +131,7 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
               print("识别到遮罩层onTap");
               },
             onTapDown: (TapDownDetails details) {
-              // todo 确定用户点击的位置是否在列表范围内
-              BoxhitTestResult = BoxHitTestResult(); // 清空
-              final tapPosition = details.globalPosition;
-              //WidgetsBinding.instance.renderView.hitTest(BoxhitTestResult, position: tapPosition);
-              final box = key.currentContext?.findRenderObject() as RenderBox;
-              box.hitTest(BoxhitTestResult, position: tapPosition);
-
-              // 获取最上层的组件
-              final HitTestEntry topmostEntry = BoxhitTestResult.path.toList()[0];
-
-              // todo 加一个文字判断处理
-              if (topmostEntry.target is TextSpan) {
-                final TextPainter textPainter = TextPainter(
-                    textDirection: TextDirection.ltr,
-                    text: topmostEntry.target as InlineSpan, maxLines:  2^31)
-                  ..layout(maxWidth: double.infinity);
-                print("【识别到文字】大小：${textPainter.size}");
-              } else {
-                final RenderBox render = topmostEntry.target as RenderBox;
-                final Rect bounds = render.paintBounds;  // 边界
-                final Size size = render.size;  // 大小
-                final Offset position = render.localToGlobal(Offset.zero);  // 位置
-                print("【widget】大小：${size}, 边界：${bounds}, 位置：${position}");
-              }
+              _inspector(details);
               },
             onLongPress: () { // 长按遮罩消失
               _overlayEntry.remove();
@@ -137,7 +139,7 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
             child: Container(  // 全屏遮罩
               color: Colors.blueGrey.withOpacity(0.2),
               child: const Center(
-                child: Text('识别模式', style: TextStyle(color: Colors.white, fontSize: 24)),
+                child: Text('inspector模式', style: TextStyle(color: Colors.white, fontSize: 24)),
               ),
             ),
           ),
