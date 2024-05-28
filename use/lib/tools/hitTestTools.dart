@@ -20,71 +20,12 @@ const Color _kTooltipBackgroundColor = Color.fromARGB(230, 60, 60, 60);
 const Color _kHighlightedRenderObjectFillColor = Color.fromARGB(128, 128, 128, 255);
 const Color _kHighlightedRenderObjectBorderColor = Color.fromARGB(128, 64, 64, 128);
 
-/// Structure to help reference count Dart objects referenced by a GUI tool
-/// using [WidgetInspectorService].
-///
-/// Does not hold the object from garbage collection.
-@visibleForTesting
-class InspectorReferenceData {
-  /// Creates an instance of [InspectorReferenceData].
-  InspectorReferenceData(Object object, this.id) {
-    // These types are not supported by [WeakReference].
-    // See https://api.dart.dev/stable/3.0.2/dart-core/WeakReference-class.html
-    if (object is String || object is num || object is bool) {
-      _value = object;
-      return;
-    }
-
-    _ref = WeakReference<Object>(object);
-  }
-
-  WeakReference<Object>? _ref;
-
-  Object? _value;
-
-  /// The id of the object in the widget inspector records.
-  final String id;
-
-  /// The number of times the object has been referenced.
-  int count = 1;
-
-  /// The value.
-  Object? get value {
-    if (_ref != null) {
-      return _ref!.target;
-    }
-    return _value;
-  }
-}
-
 const TextStyle _messageStyle = TextStyle(
   color: Color(0xFFFFFFFF),
   fontSize: 10.0,
   height: 1.2,
 );
 
-/// A widget that enables inspecting the child widget's structure.
-///
-/// Select a location on your device or emulator and view what widgets and
-/// render object that best matches the location. An outline of the selected
-/// widget and terse summary information is shown on device with detailed
-/// information is shown in the observatory or in IntelliJ when using the
-/// Flutter Plugin.
-///
-/// The inspector has a select mode and a view mode.
-///
-/// In the select mode, tapping the device selects the widget that best matches
-/// the location of the touch and switches to view mode. Dragging a finger on
-/// the device selects the widget under the drag location but does not switch
-/// modes. Touching the very edge of the bounding box of a widget triggers
-/// selecting the widget even if another widget that also overlaps that
-/// location would otherwise have priority.
-///
-/// In the view mode, the previously selected widget is outlined, however,
-/// touching the device has the same effect it would have if the inspector
-/// wasn't present. This allows interacting with the application and viewing how
-/// the selected widget changes position. Clicking on the select icon in the
-/// bottom left corner of the application switches back to select mode.
 class WidgetInspector extends StatefulWidget {
   /// Creates a widget that enables inspection for the child.
   ///
@@ -105,13 +46,13 @@ class WidgetInspector extends StatefulWidget {
   final InspectorSelectButtonBuilder? selectButtonBuilder;
 
   @override
-  State<WidgetInspector> createState() => _WidgetInspectorState();
+  State<WidgetInspector> createState() => WidgetInspectorState();
 }
 
-class _WidgetInspectorState extends State<WidgetInspector>
+class WidgetInspectorState extends State<WidgetInspector>
     with WidgetsBindingObserver {
 
-  _WidgetInspectorState() : selection = WidgetInspectorService.instance.selection;
+  WidgetInspectorState() : selection = WidgetInspectorService.instance.selection;
 
   Offset? _lastPointerLocation;
 
