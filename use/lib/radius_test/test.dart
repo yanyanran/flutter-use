@@ -2,7 +2,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import './tools/hitTestTools.dart' as tools;
+import '../tools/hitTestTools.dart' as tools;
 
 void main() {
   runApp(MyApp());
@@ -37,45 +37,72 @@ class _ScaffoldRouteState extends State<ScaffoldRoute> {
       appBar: AppBar( //导航栏
         title: Text("Demo"),
       ),
-      body: List(),  // globalKey传给列表
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // todo 仅Container
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Center(
+                child: Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: Colors.green,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 20), // 添加间隔
+            // todo 仅ClipRRect
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: CustomPaint(
+                painter: MyPainter(),
+                size: Size(100, 100), // 设置画布大小
+                child: Center(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: CustomPaint(
+                      painter: MyPainterTest(),
+                      size: Size(60, 60), // 设置画布大小
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            SizedBox(height: 20), // 添加间隔
+            // todo 使用ClipRRect绘制圆角图案，Container填充颜色
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                width: 100,
+                height: 100,
+                color: Colors.red,
+                child: Center(
+                  child: Container(
+                    width: 60,
+                    height: 60,
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ), // globalKey传给列表
       floatingActionButton: Drag(key),  // 可拖拉悬浮按钮  globalKey传给按钮
     );
-  }
-}
-
-class List extends StatefulWidget {
-  List({super.key});
-
-  @override
-  State<List> createState() => _ListState();
-}
-
-class _ListState extends State<List> {
-  @override
-  Widget build(BuildContext context) {
-    return ListView.builder(
-        itemCount: 20,
-        itemExtent: 60.0, //强制高度为50.0
-        itemBuilder: (BuildContext context, int index) {
-          return ListTile(
-            leading: const Icon(Icons.people, color: Colors.blue),
-            title: Text(
-              "$index  列表标题----",
-              style: TextStyle(color: Colors.blue),
-            ),
-            trailing: const Icon(
-              Icons.keyboard_arrow_right,
-              color: Colors.blue,
-            ),
-            hoverColor: Colors.blue,
-            focusColor: Colors.blue,
-            autofocus: true,
-            onTap: () {
-              print("$index");
-            },
-
-          );
-        });
   }
 }
 
@@ -101,6 +128,21 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
     final renderObj = key.currentContext?.findRenderObject();
     tools.WidgetInspectorState inn = tools.WidgetInspectorState();
     final resList = inn.hitTest(tapPosition, renderObj!);
+
+    // todo 遍历识别是否存在RenderDecoratedBox或RenderClipRRect
+    for (final render in resList) {
+      if(render is RenderDecoratedBox) {
+        var dec = render.decoration as BoxDecoration;
+        print("---------识别到RenderDecoratedBox: radius为${dec}---------");
+        break;
+      } else if (render is RenderClipRRect) {
+        print("--------识别到RenderClipRRec: radius为${render.borderRadius}---------");
+        break;
+      } else {
+        print("--------【不存在圆角！】---------");
+      }
+    }
+
     final RenderBox render = resList[0] as RenderBox;
     // print("【！log！】${resList[0]}");  // 获取最上层的组件
     final Rect bounds = render.paintBounds;  // 边界
@@ -178,5 +220,35 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
         )
       ],
     );
+  }
+}
+
+class MyPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // 在这里绘制你的图形，例如一个矩形
+    final paint = Paint()..color = Colors.yellow;
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    canvas.drawRect(rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
+  }
+}
+
+class MyPainterTest extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    // 在这里绘制你的图形，例如一个矩形
+    final paint = Paint()..color = Colors.green;
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height);
+    canvas.drawRect(rect, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
 }

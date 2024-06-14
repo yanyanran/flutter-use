@@ -1,3 +1,6 @@
+import 'dart:ui';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -23,6 +26,26 @@ class MyApp extends StatelessWidget {
 
 final GlobalKey<_DragState> key = GlobalKey<_DragState>();
 
+// 绘图
+class RectanglePainter extends CustomPainter {
+  final ValueListenable<Rect> rect;
+  RectanglePainter({required this.rect}) : super(repaint: rect);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.black
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRect(rect.value, paint);
+    }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return true;
+  }
+}
+
 // 大页面骨架
 class ScaffoldRoute extends StatefulWidget {
   @override
@@ -34,11 +57,13 @@ class _ScaffoldRouteState extends State<ScaffoldRoute> {
   Widget build(BuildContext context) {
     return Scaffold(
       key: key,
-      appBar: AppBar( //导航栏
+      appBar: AppBar(
         title: Text("Demo"),
       ),
-      body: List(),  // globalKey传给列表
-      floatingActionButton: Drag(key),  // 可拖拉悬浮按钮  globalKey传给按钮
+      body: Stack(
+        children: [List()],
+      ),
+      floatingActionButton: Drag(key),
     );
   }
 }
@@ -87,29 +112,32 @@ class Drag extends StatefulWidget {
   _DragState createState() => _DragState();
 }
 
-typedef InspectorSelectButtonBuilder = Widget Function(BuildContext context, VoidCallback onPressed);
-late final InspectorSelectButtonBuilder? inspectorSelectButtonBuilder;
-
 class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
   double _top = 700.0; //距顶部的偏移
   double _left = 320.0;//距左边的偏移
   late OverlayEntry _overlayEntry;
 
   // 确定用户点击的位置是否在列表范围内【重写hitTest】
-  void _inspector(TapDownDetails details) {
+  Rect _inspector(TapDownDetails details) {
     final tapPosition = details.globalPosition;
-    final renderObj = key.currentContext?.findRenderObject();
+    final renderObj = WidgetsBinding.instance.renderView;
     tools.WidgetInspectorState inn = tools.WidgetInspectorState();
-    final resList = inn.hitTest(tapPosition, renderObj!);
-    final RenderBox render = resList[0] as RenderBox;
-    // print("【！log！】${resList[0]}");  // 获取最上层的组件
-    final Rect bounds = render.paintBounds;  // 边界
-    final Size size = render.size;  // 大小
-    final Offset position = render.localToGlobal(Offset.zero);  // 位置
-    print("【widget】大小：${size}, 边界：${bounds}, 位置：${position}");
+    final resList = inn.hitTest(tapPosition, renderObj);
+    var render = resList[0];
+
+    // if (render is RenderParagraph) {
+    //   var textColor = render.text.style?.color;
+    //   var text = render.text;
+    //   print("识别到文字：${text}, 文字颜色：${textColor}");
+    // }
+
+    var rect = render.semanticBounds;
+    var transform = render.getTransformTo(null);
+    print("-------【widget信息】rect信息: ${rect}, rect.x: ${transform.getTranslation().x}, rect.y: ${transform.getTranslation().y}--------");
+    return rect;
   }
 
-  // 全屏遮罩
+  // 测试widgetsBinding的renderView
   void _showOverlay(GlobalKey<_DragState> key) {
     _overlayEntry = OverlayEntry(
       builder: (context) {
@@ -118,20 +146,28 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
           left: 0,
           right: 0,
           bottom: 0,
-          child: GestureDetector(  // 手势识别
+          child: GestureDetector(
+            //onPanUpdate: rectPainter.updateRect(rect),
             behavior: HitTestBehavior.translucent,
-            onTap: () {  // 点击事件
+            onTap: () {
               print("识别到遮罩层onTap");
             },
             onTapDown: (TapDownDetails details) {
-              _inspector(details);
+              print("识别到point:${details.globalPosition}");
+              var rect = _inspector(details);
+              // 更新RectanglePainter的矩形信息
+              final ValueNotifier<Rect> _rect = ValueNotifier<Rect>(rect);
+              CustomPaint(
+                painter: RectanglePainter(rect: _rect),
+                size: Size(500, 500),
+              );
             },
-            onLongPress: () { // 长按遮罩消失
+            onLongPress: () {
               _overlayEntry.remove();
             },
-            child: Container(  // 全屏遮罩
+            child: Container(
               color: Colors.blueGrey.withOpacity(0.2),
-              child: const Center(
+              child: Center(
                 child: Text('inspector模式', style: TextStyle(color: Colors.white, fontSize: 24)),
               ),
             ),
@@ -145,27 +181,25 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     return Stack(
-      children: <Widget>[
+      children:<Widget>[
         Positioned(
           top: _top,
           left: _left,
           child: GestureDetector(
             child: CircleAvatar(child: Text("+")),
-            //手指按下时会触发此回调
-            onPanDown: (DragDownDetails e) {
-              //打印手指按下的位置(相对于屏幕)
-              print("用户手指按下：${e.globalPosition}");
+            // onPanDown: (DragDownDetails e) {
+            //   print("用户手指按下：${e.globalPosition}");
+            // },
+            onTapDown: (TapDownDetails details) {
+              print("识别到point:${details.globalPosition}");
             },
-            //手指滑动时会触发此回调
             onPanUpdate: (DragUpdateDetails e) {
-              //用户手指滑动时，更新偏移，重新构建
-              setState(() {
+              setState(() {  //用户手指滑动时，更新偏移，重新构建
                 _left += e.delta.dx;
                 _top += e.delta.dy;
               });
             },
             onPanEnd: (DragEndDetails e){
-              //打印滑动结束时在x、y轴上的速度
               print("滑动结束：${e.velocity}");
             },
             onTap: () {
