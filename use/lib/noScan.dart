@@ -11,6 +11,8 @@ void main() {
   runApp(MyApp());
 }
 
+// todo 搞清楚为什么 WidgetsBinding方法不行
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -60,11 +62,34 @@ class _ScaffoldRouteState extends State<ScaffoldRoute> {
       appBar: AppBar(
         title: Text("Demo"),
       ),
-      body: Stack(
-        children: [List()],
-      ),
+      // body: Stack(
+      //   children: [List()],
+      // ),
+      body: CustomPaint(
+          painter: testPainter(),
+        ),
       floatingActionButton: Drag(key),
     );
+  }
+}
+
+class testPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..color = Colors.blue;
+
+    // Draw the first rectangle
+    final rect1 = Rect.fromLTWH(50, 50, 150, 100);
+    canvas.drawRect(rect1, paint);
+
+    // Draw the second rectangle
+    final rect2 = Rect.fromLTWH(200, 200, 100, 200);
+    canvas.drawRect(rect2, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) {
+    return false;
   }
 }
 
@@ -120,10 +145,35 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
   // 确定用户点击的位置是否在列表范围内【重写hitTest】
   Rect _inspector(TapDownDetails details) {
     final tapPosition = details.globalPosition;
-    final renderObj = WidgetsBinding.instance.renderView;
     tools.WidgetInspectorState inn = tools.WidgetInspectorState();
+    // 1
+    // var result = HitTestResult();
+    // WidgetsBinding.instance.renderView.hitTest(result, position: tapPosition);
+    // // 2
+    // final renderObj = key.currentContext?.findRenderObject();
+    // final resList = inn.hitTest(tapPosition, renderObj!);
+    // 3
+    // todo 断点renderView/renderView。child
+    var renderObj = WidgetsBinding.instance.renderView;
+    var renderObj2 =  WidgetsBinding.instance.renderView.child;
     final resList = inn.hitTest(tapPosition, renderObj);
-    var render = resList[0];
+    final resList2 = inn.hitTest(tapPosition, renderObj2 as RenderObject);
+
+    // var num = 0;
+    // final List<DiagnosticsNode> children = object.debugDescribeChildren();
+    // if (renderObj.child != null) {
+    //   renderObj = renderObj.child as RenderOb;
+    //   num++;
+    // }
+
+    // var num2 = 0;
+    // final List<DiagnosticsNode> children = renderObj2.debugDescribeChildren() as List;
+    // if (renderObj2.child != null) {
+    //   renderObj2 = renderObj2.child as RenderBox?;
+    //   num2++;
+    // }
+
+    var render = resList2[0];
 
     // if (render is RenderParagraph) {
     //   var textColor = render.text.style?.color;
