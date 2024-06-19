@@ -84,7 +84,7 @@ class WidgetInspectorState extends State<WidgetInspector>
     };
     WidgetInspectorService.instance.selectionChangedCallback = _selectionChangedCallback;
   }
-
+  var num =0;
   @override
   void dispose() {
     if (WidgetInspectorService.instance.selectionChangedCallback == _selectionChangedCallback) {
@@ -112,13 +112,21 @@ class WidgetInspectorState extends State<WidgetInspector>
     final List<DiagnosticsNode> children = object.debugDescribeChildren();
     for (int i = children.length - 1; i >= 0; i -= 1) {
       final DiagnosticsNode diagnostics = children[i];
+      // todo
       if (diagnostics.style == DiagnosticsTreeStyle.offstage ||
           diagnostics.value is! RenderObject) {
+        num++;
+        if (diagnostics.value is! RenderObject) {
+          print("--------${num}第一个if ：diagnostics.value为${diagnostics.value}----------");
+        }
+        print("--------${num}第一个if2 ：diagnostics.style == DiagnosticsTreeStyle.offstage----------");
         continue;
       }
       final RenderObject child = diagnostics.value! as RenderObject;
       final Rect? paintClip = object.describeApproximatePaintClip(child);
+      // todo
       if (paintClip != null && !paintClip.contains(localPosition)) {
+          print("---------第二个if：paintClip不为空且!paintClip.contains(localPosition)----------");
         continue;
       }
 

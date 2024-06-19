@@ -62,12 +62,12 @@ class _ScaffoldRouteState extends State<ScaffoldRoute> {
       appBar: AppBar(
         title: Text("Demo"),
       ),
-      // body: Stack(
-      //   children: [List()],
-      // ),
-      body: CustomPaint(
-          painter: testPainter(),
-        ),
+      body: Stack(
+        children: [List()],
+      ),
+      // body: CustomPaint(
+      //     painter: testPainter(),
+      //   ),
       floatingActionButton: Drag(key),
     );
   }
@@ -146,6 +146,7 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
   Rect _inspector(TapDownDetails details) {
     final tapPosition = details.globalPosition;
     tools.WidgetInspectorState inn = tools.WidgetInspectorState();
+    // todo
     // 1
     // var result = HitTestResult();
     // WidgetsBinding.instance.renderView.hitTest(result, position: tapPosition);
@@ -153,25 +154,17 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
     // final renderObj = key.currentContext?.findRenderObject();
     // final resList = inn.hitTest(tapPosition, renderObj!);
     // 3
-    // todo 断点renderView/renderView。child
-    var renderObj = WidgetsBinding.instance.renderView;
-    var renderObj2 =  WidgetsBinding.instance.renderView.child;
+    final renderObj = WidgetsBinding.instance.renderView;
+    final renderObj2 =  WidgetsBinding.instance.renderView.child;
+
+    if (renderObj2 is RenderParagraph) {
+      final color = renderObj2.text.style?.color;
+    }
+
     final resList = inn.hitTest(tapPosition, renderObj);
+    print("================================================================");
+    print("================================================================");
     final resList2 = inn.hitTest(tapPosition, renderObj2 as RenderObject);
-
-    // var num = 0;
-    // final List<DiagnosticsNode> children = object.debugDescribeChildren();
-    // if (renderObj.child != null) {
-    //   renderObj = renderObj.child as RenderOb;
-    //   num++;
-    // }
-
-    // var num2 = 0;
-    // final List<DiagnosticsNode> children = renderObj2.debugDescribeChildren() as List;
-    // if (renderObj2.child != null) {
-    //   renderObj2 = renderObj2.child as RenderBox?;
-    //   num2++;
-    // }
 
     var render = resList2[0];
 
