@@ -1,38 +1,40 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'tool/overlay.dart';
 
-void main() {
-  runApp(MyApp());
+// 自己实现GestureRecognizer替代GestureDetector，无法获取常规形态debugOwner
+class ScaffoldRouteOwner extends StatefulWidget {
+  @override
+  _ScaffoldRouteState createState() => _ScaffoldRouteState();
 }
 
-class MyApp extends StatelessWidget {
+class _ScaffoldRouteState extends State<ScaffoldRouteOwner> {
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      home: Scaffold(
-        appBar: AppBar(title: Text('Custom Gesture Recognizer')),
-        body: Center(child: customGestureDetector(
-          onTap: () => print("【绿色单击】"),
-          onDoubleTap: () => print("【绿色双击】"),
-          onLongPress: () => print("【绿色长按】"),
-          child: Container(
-            width: 200,
-            height: 200,
-            color: Colors.green,
-            alignment: Alignment.center,
-            child: customGestureDetector(
-              onTap: () => print("【红色单击】"),
-              onDoubleTap: () => print("【红色双击】"),
-              onLongPress: () => print("【红色长按】"),
-              child: Container(
-                width: 100,
-                height: 100,
-                color: Colors.red,
-              ),
+    return Scaffold(
+      appBar: AppBar(title: Text('Custom Gesture Recognizer')),
+      //floatingActionButton: Drag(),  // 可拖拉按钮
+      body: Center(child: customGestureDetector(
+        onTap: () => print("【绿色单击】"),
+        onDoubleTap: () => print("【绿色双击】"),
+        onLongPress: () => print("【绿色长按】"),
+        child: Container(
+          width: 200,
+          height: 200,
+          color: Colors.green,
+          alignment: Alignment.center,
+          child: customGestureDetector(
+            onTap: () => print("【红色单击】"),
+            onDoubleTap: () => print("【红色双击】"),
+            onLongPress: () => print("【红色长按】"),
+            child: Container(
+              width: 100,
+              height: 100,
+              color: Colors.red,
             ),
           ),
-        )),
-      ),
+        ),
+      )),
     );
   }
 }
