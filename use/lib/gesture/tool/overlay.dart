@@ -40,8 +40,8 @@ class _CustomWidgetState extends State<CustomWidget> {
       _overlayEntry = OverlayEntry(
         builder: (context) {
           return Positioned(
-            right: 87.6,  // todo 控件offset
-            bottom: 112.1,
+            right: 118,   // todo 控件offset
+            bottom: 117,
             child: GestureDetector(
               onLongPress: () { // 长按遮罩消失
                 _overlayEntry.remove();
@@ -109,13 +109,13 @@ class _CustomWidgetState extends State<CustomWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Listener(   // listener
+    return Listener(
       child: GestureDetector(
         onTap: () {
           print("绿色单击");
-          if (_isOn) {  // 检查开启状态
+          if (_isOn) {
             start();
-          }// 关闭状态，什么都不做
+          }
         },
         onLongPress: () {
           print("绿色长按");
@@ -123,30 +123,42 @@ class _CustomWidgetState extends State<CustomWidget> {
             start();
           }
         },
-        child: Container(
-            width: 200,
-            height: 200,
-            color: Colors.green,
-            alignment: Alignment.center,
-            child: GestureDetector(
-              onTap: () {
-                print("红色单击");
-                if (_isOn) {
-                  start();
-                }
-              },
-              onLongPress: () {
-                print("红色长按");
-                if (_isOn) {
-                  start();
-                }
-              },
+        child: Stack(
+          children: [
+            Positioned(
+              left: 20, // 调整绿色矩形的左边距
+              top: 20, // 调整绿色矩形的顶边距
               child: Container(
-                width: 100,
-                height: 100,
-                color: Colors.red,
+                width: 200,
+                height: 200,
+                color: Colors.green,
+                alignment: Alignment.center,
               ),
-            )
+            ),
+            Positioned(
+              left: 60, // 调整红色矩形的左边距
+              top: 60, // 调整红色矩形的顶边距
+              child: GestureDetector(
+                onTap: () {
+                  print("红色单击");
+                  if (_isOn) {
+                    start();
+                  }
+                },
+                onLongPress: () {
+                  print("红色长按");
+                  if (_isOn) {
+                    start();
+                  }
+                },
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  color: Colors.red,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
