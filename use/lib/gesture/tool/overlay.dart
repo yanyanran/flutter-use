@@ -18,6 +18,7 @@ class _ScaffoldRouteState extends State<ScaffoldRoute> {
       appBar: AppBar(
         title: Text("手势竞争识别器"),
       ),
+      // todo 常驻按钮添加：点击后开启一个控制面板，展示一个开关
       floatingActionButton: Drag(),  // 可拖拉按钮
       body: Center(child: CustomWidget()),
     );
@@ -35,22 +36,24 @@ class _CustomWidgetState extends State<CustomWidget> {
   bool _isShowOverlay = false;
   bool _isShowDetailOverlay = false;
 
-  void _showOverlay() {
+  void _showOverlay(double top,left,bottom,right) {
     if (!(infoMap['w'] == null && infoMap['h'] == null) || !(infoMap['w'] == 0.0 && infoMap['h'] == 0.0)) {
       _overlayEntry = OverlayEntry(
         builder: (context) {
           return Positioned(
-            right: 118,   // todo 控件offset
-            bottom: 117,
+            top: top,  // 控件offset
+            left: left,
+            right: right,
+            bottom: bottom,
             child: GestureDetector(
               onLongPress: () { // 长按遮罩消失
                 _overlayEntry.remove();
                 _isShowOverlay = false;
               },
               child: Container(
-                  width: infoMap['w'],  // todo 控件width、height
+                  width: infoMap['w'],  // 控件width、height
                   height: infoMap['h'],
-                  color: Colors.blueGrey.withOpacity(0.2),
+                  color: Colors.blueGrey.withOpacity(0.6),
                   child: GestureDetector(
                     onTap: () {
                       _showDetailedOverlay(infoMap);
@@ -70,7 +73,7 @@ class _CustomWidgetState extends State<CustomWidget> {
     _detailOverlayEntry = OverlayEntry(
       builder: (context) {
         return GestureDetector(
-          onLongPress: () {
+          onLongPress: () {  // todo 手势做个处理，点击取消，长按显示debug信息
             _detailOverlayEntry.remove();
             _isShowDetailOverlay = false;
           },
@@ -79,7 +82,8 @@ class _CustomWidgetState extends State<CustomWidget> {
             width: MediaQuery.of(context).size.width,
             height: MediaQuery.of(context).size.height,
             child: Center(
-              child: Text(  // todo debugOner Info
+              child: Text(
+                // todo 这里需要做一个列表，一个title对应一个信息
                 '[WinnerInfo] Winner: ${infoMap['winner']}\n[WinnerInfo] Stack: ${infoMap['stack']}\n[WinnerInfo] Owner: ${infoMap['owner']}\n[WinnerInfo] OwnerCreateLocation: ${infoMap['location']}\n',
                 style: TextStyle(fontSize: 11, color: Colors.white),
               ),
@@ -92,7 +96,26 @@ class _CustomWidgetState extends State<CustomWidget> {
     _isShowDetailOverlay = true; // 设置标志位表示全屏遮罩已显示
   }
 
-  void start() {
+  void start(dynamic details) {
+    final resList = GestureBinding.debugHitTestResList;
+    var transform = resList[0].target.getTransformTo(null);
+    var X, Y, W, H, width, height, x, y;
+
+    width = resList[0].target.semanticBounds.width.toDouble();
+    height = resList[0].target.semanticBounds.height.toDouble();
+    x = transform.getTranslation().x.toDouble();
+    y = transform.getTranslation().y.toDouble();
+
+    W = resList[resList.length - 3].target.semanticBounds?.width.toDouble();
+    H = resList[resList.length - 3].target.semanticBounds?.height.toDouble();
+    X = resList[resList.length - 3].target.getTransformTo(null).getTranslation().x.toDouble();
+    Y = resList[resList.length - 3].target.getTransformTo(null).getTranslation().y.toDouble();
+
+    var top = y - Y;
+    var left = x - X;
+    var bottom = (Y + H!) - (y + height);
+    var right = (X + W!) - (x + width);
+
     if (_isShowOverlay) {
       setState(() {
         _overlayEntry.remove();
@@ -101,7 +124,7 @@ class _CustomWidgetState extends State<CustomWidget> {
     } else {
       setState(() {
         infoMap = GestureArenaManager.GestureWinnerCallback();
-        _showOverlay();
+        _showOverlay(top, left, bottom, right);
         _isShowOverlay = true;
       });
     }
@@ -109,56 +132,67 @@ class _CustomWidgetState extends State<CustomWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Listener(
+    return Listener(   // listener
       child: GestureDetector(
-        onTap: () {
+        onTapDown: (de) {
           print("绿色单击");
-          if (_isOn) {
-            start();
-          }
+          if (_isOn) {  // 检查开启状态
+            start(de);
+          }// 关闭状态，什么都不做
         },
-        onLongPress: () {
+        onLongPressStart: (de) {
           print("绿色长按");
           if (_isOn) {
-            start();
+            start(de);
           }
         },
-        child: Stack(
-          children: [
-            Positioned(
-              left: 20, // 调整绿色矩形的左边距
-              top: 20, // 调整绿色矩形的顶边距
+        child: Container(
+            width: 200,
+            height: 200,
+            color: Colors.green,
+            alignment: Alignment.center,
+            child: GestureDetector(
+              onTapDown: (de) {
+                print("红色单击");
+                if (_isOn) {
+                  start(de);
+                }
+              },
+              onLongPressStart: (de) {
+                print("红色长按");
+                if (_isOn) {
+                  start(de);
+                }
+              },
               child: Container(
-                width: 200,
-                height: 200,
-                color: Colors.green,
-                alignment: Alignment.center,
-              ),
-            ),
-            Positioned(
-              left: 60, // 调整红色矩形的左边距
-              top: 60, // 调整红色矩形的顶边距
-              child: GestureDetector(
-                onTap: () {
-                  print("红色单击");
-                  if (_isOn) {
-                    start();
-                  }
-                },
-                onLongPress: () {
-                  print("红色长按");
-                  if (_isOn) {
-                    start();
-                  }
-                },
-                child: Container(
-                  width: 100,
-                  height: 100,
-                  color: Colors.red,
+                width: 100,
+                height: 100,
+                color: Colors.red,
+                alignment: Alignment.centerRight,
+                child: IgnorePointer(
+                  ignoring: true,  // 设置屏蔽
+                  child: GestureDetector(
+                      onTapDown: (de) {
+                        print("黄色单击");
+                        if (_isOn) {
+                          start(de);
+                        }
+                      },
+                      onLongPressStart: (de) {
+                        print("黄色长按");
+                        if (_isOn) {
+                          start(de);
+                        }
+                      },
+                      child: Container(
+                        width: 50,
+                        height: 50,
+                        color: Colors.yellow,
+                      )
+                  ),
                 ),
               ),
-            ),
-          ],
+            )
         ),
       ),
     );
