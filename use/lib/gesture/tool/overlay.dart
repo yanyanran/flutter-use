@@ -18,7 +18,6 @@ class _ScaffoldRouteState extends State<ScaffoldRoute> {
       appBar: AppBar(
         title: Text("手势竞争识别器"),
       ),
-      // todo 常驻按钮添加：点击后开启一个控制面板，展示一个开关
       floatingActionButton: Drag(),  // 可拖拉按钮
       body: Center(child: CustomWidget()),
     );
@@ -46,7 +45,7 @@ class _CustomWidgetState extends State<CustomWidget> {
             right: right,
             bottom: bottom,
             child: GestureDetector(
-              onLongPress: () { // 长按遮罩消失
+              onTap: () { // 长按遮罩消失
                 _overlayEntry.remove();
                 _isShowOverlay = false;
               },
@@ -55,7 +54,7 @@ class _CustomWidgetState extends State<CustomWidget> {
                   height: infoMap['h'],
                   color: Colors.blueGrey.withOpacity(0.6),
                   child: GestureDetector(
-                    onTap: () {
+                    onLongPress: () {
                       _showDetailedOverlay(infoMap);
                     },
                   )
@@ -73,24 +72,60 @@ class _CustomWidgetState extends State<CustomWidget> {
     _detailOverlayEntry = OverlayEntry(
       builder: (context) {
         return GestureDetector(
-          onLongPress: () {  // todo 手势做个处理，点击取消，长按显示debug信息
-            _detailOverlayEntry.remove();
-            _isShowDetailOverlay = false;
-          },
-          child: Container(
-            color: Colors.black.withOpacity(0.5),
-            width: MediaQuery.of(context).size.width,
-            height: MediaQuery.of(context).size.height,
-            child: Center(
-              child: Text(
-                // todo 这里需要做一个列表，一个title对应一个信息
-                '[WinnerInfo] Winner: ${infoMap['winner']}\n[WinnerInfo] Stack: ${infoMap['stack']}\n[WinnerInfo] Owner: ${infoMap['owner']}\n[WinnerInfo] OwnerCreateLocation: ${infoMap['location']}\n',
-                style: TextStyle(fontSize: 11, color: Colors.white),
+            onTap: () {
+              _detailOverlayEntry.remove();
+              _isShowDetailOverlay = false;
+            },
+            child: Container(
+              color: Colors.black.withOpacity(0.5),
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              child: Center(
+                child: ListView.builder(
+                  itemCount: 4,
+                  itemBuilder: (BuildContext context, int index) {
+                    final key = infoMap.keys.elementAt(index);
+                    final value = infoMap[key];
+
+                    return Scrollbar( // 显示进度条
+                      child: SingleChildScrollView(
+                        padding: EdgeInsets.all(16.0),
+                        child: Center(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.black,
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                child: Text(
+                                  key,
+                                  style: TextStyle(fontSize: 13, color: Colors.white, decoration: TextDecoration.none),
+                                ),
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                value,
+                                style: TextStyle(fontSize: 10, color: Colors.white, decoration: TextDecoration.none),
+                              ),
+                              SizedBox(height: 10),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                // Text(
+                //   '[WinnerInfo] Winner: ${infoMap['winner']}\n[WinnerInfo] Stack: ${infoMap['stack']}\n[WinnerInfo] Owner: ${infoMap['owner']}\n[WinnerInfo] OwnerCreateLocation: ${infoMap['location']}\n',
+                //   style: TextStyle(fontSize: 11, color: Colors.white),
+                // ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
     );
     Overlay.of(context).insert(_detailOverlayEntry); // 将全屏遮罩插入到Overlay中
     _isShowDetailOverlay = true; // 设置标志位表示全屏遮罩已显示
@@ -209,6 +244,7 @@ class Drag extends StatefulWidget {
 class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
   double _top = 700.0; //按钮距顶部的偏移
   double _left = 320.0;//按钮距左边的偏移
+  late bool _isCheck = false;
 
   @override
   Widget build(BuildContext context) {
@@ -218,7 +254,7 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
           top: _top,
           left: _left,
           child: GestureDetector(
-            child: CircleAvatar(child: Text(_isOn ? "OFF" : "ON")),
+            child: CircleAvatar(child: Text(_isOn ? "ON" : "OFF")),
             onPanUpdate: (DragUpdateDetails e) { // 用户手指滑动时重新构建按钮
               setState(() {
                 _left += e.delta.dx;
@@ -226,10 +262,44 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
               });
             },
             onTap: () {
-              _isOn = !_isOn;  // 更新状态
               setState(() {
-                CircleAvatar(child: Text(_isOn ? "OFF" : "ON"));
+                CircleAvatar(child: Text(_isOn ? "ON" : "OFF"));
               });
+              showDialog(  // 点击按钮弹出控制面板
+                context: context,
+                builder: (BuildContext context) {
+                  return StatefulBuilder(  // showDialog内部组件动态更新时需要用StatefulBuilder
+                      builder: (ctx, setState) {
+                        return AlertDialog(
+                          title: Text('控制面板'),
+                          content: SwitchListTile(
+                            value: _isCheck,
+                            onChanged: (value) {
+                              setState(() {
+                                _isOn = !_isOn;  // 开关更新状态
+                                if (_isOn) {
+                                  GestureArenaManager.CheckWinnerDebugTool(true);
+                                } else {
+                                  GestureArenaManager.CheckWinnerDebugTool(false);
+                                }
+                                _isCheck = value;
+                              });
+                            },
+                            title: Text('手势竞争排查工具', style: TextStyle(fontSize: 14)),
+                          ),
+                          actions: <Widget>[
+                            IconButton(
+                              icon: Icon(Icons.close),
+                              onPressed: () {
+                                Navigator.of(context).pop(ctx); // 关闭对话框
+                              },
+                            ),
+                          ],
+                        );
+                      }
+                  );
+                },
+              );
             },
           ),
         ),
