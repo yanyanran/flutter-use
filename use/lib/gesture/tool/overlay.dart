@@ -118,10 +118,6 @@ class _CustomWidgetState extends State<CustomWidget> {
                     );
                   },
                 ),
-                // Text(
-                //   '[WinnerInfo] Winner: ${infoMap['winner']}\n[WinnerInfo] Stack: ${infoMap['stack']}\n[WinnerInfo] Owner: ${infoMap['owner']}\n[WinnerInfo] OwnerCreateLocation: ${infoMap['location']}\n',
-                //   style: TextStyle(fontSize: 11, color: Colors.white),
-                // ),
               ),
             ),
           );
@@ -131,7 +127,7 @@ class _CustomWidgetState extends State<CustomWidget> {
     _isShowDetailOverlay = true; // 设置标志位表示全屏遮罩已显示
   }
 
-  void start(dynamic details) {
+  void start() {
     final resList = GestureBinding.debugHitTestResList;
     var transform = resList[0].target.getTransformTo(null);
     var X, Y, W, H, width, height, x, y;
@@ -150,6 +146,13 @@ class _CustomWidgetState extends State<CustomWidget> {
     var left = x - X;
     var bottom = (Y + H!) - (y + height);
     var right = (X + W!) - (x + width);
+
+    late DebugCreator? obj = ((resList[0].target as RenderObject).debugCreator as DebugCreator);
+
+    late dynamic owner, location;
+
+    location = obj.element.widget.widgetLocation();
+
 
     if (_isShowOverlay) {
       setState(() {
@@ -172,13 +175,13 @@ class _CustomWidgetState extends State<CustomWidget> {
         onTapDown: (de) {
           print("绿色单击");
           if (_isOn) {  // 检查开启状态
-            start(de);
+            start();
           }// 关闭状态，什么都不做
         },
         onLongPressStart: (de) {
           print("绿色长按");
           if (_isOn) {
-            start(de);
+            start();
           }
         },
         child: Container(
@@ -190,13 +193,13 @@ class _CustomWidgetState extends State<CustomWidget> {
               onTapDown: (de) {
                 print("红色单击");
                 if (_isOn) {
-                  start(de);
+                  start();
                 }
               },
               onLongPressStart: (de) {
                 print("红色长按");
                 if (_isOn) {
-                  start(de);
+                  start();
                 }
               },
               child: Container(
@@ -209,15 +212,15 @@ class _CustomWidgetState extends State<CustomWidget> {
                   child: GestureDetector(
                       onTapDown: (de) {
                         print("黄色单击");
-                        if (_isOn) {
-                          start(de);
-                        }
+                        // if (_isOn) {
+                        //   start(de);
+                        // }
                       },
                       onLongPressStart: (de) {
                         print("黄色长按");
-                        if (_isOn) {
-                          start(de);
-                        }
+                        // if (_isOn) {
+                        //   start(de);
+                        // }
                       },
                       child: Container(
                         width: 50,
@@ -279,6 +282,9 @@ class _DragState extends State<Drag> with SingleTickerProviderStateMixin {
                                 _isOn = !_isOn;  // 开关更新状态
                                 if (_isOn) {
                                   GestureArenaManager.CheckWinnerDebugTool(true);
+                                  GestureArenaManager.SetWinnerCallback(() {
+                                    print("【HAHAHAHAHHAHAHHAHAHAHHAHAHAHAHAHAHHAAHAHAHAHAHAHAH】");
+                                  });   // start
                                 } else {
                                   GestureArenaManager.CheckWinnerDebugTool(false);
                                 }
