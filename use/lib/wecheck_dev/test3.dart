@@ -1,81 +1,47 @@
-import 'package:flutter/material.dart';
+class Node {
+  int value;
+  List<Node> children;
+
+  Node(this.value) : children = [];
+}
+
+Object buildTree(List<int> levels) {
+  Map<int, Node> nodeMap = {};
+  List<Node> rootNodes = [];
+
+  // 创建所有节点并存储在映射中
+  levels.forEach((value) {
+    nodeMap[value] = Node(value);
+  });
+
+  // 构建节点之间的父子关系
+  levels.forEach((value) {
+    Node? currentNode = nodeMap[value];
+    int parentValue = value ~/ 10; // 假设父节点的值是当前节点值除以10的整数部分
+
+    if (parentValue != 0 && nodeMap.containsKey(parentValue)) {
+      nodeMap[parentValue]?.children.add(currentNode!);
+    } else {
+      rootNodes.add(currentNode!); // 如果没有父节点，或者是根节点
+    }
+  });
+
+  // 返回根节点列表（可能有多个根节点）
+  return rootNodes.length == 1 ? rootNodes.first : rootNodes;
+}
 
 void main() {
-  runApp(
-    const MaterialApp(
-      home: AppHome(),
-    ),
-  );
-}
+  List<int> levels = [
+    90, 16, 16, 16, 42, 16, 16, 56, 76, 77, 85, 90, 92, 93, 96, 76, 16, 99, 100, 16
+  ];
 
-class AppHome extends StatelessWidget {
-  const AppHome({super.key});
+  Object tree = buildTree(levels);
 
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      child: Center(
-        child: TextButton(
-          onPressed: () {
-            rootElementTree();
-          },
-          child: const Text('Dump Widget Tree'),
-        ),
-      ),
-    );
+  // 打印树结构（简单示例）
+  void printTree(Node node, {int indent = 0}) {
+    print(' ' * indent + node.value);
+    node.children.forEach((child) => printTree(child, indent: indent + 2));
   }
-}
 
-void func1() {
-  visitorChildRenderObject(Element element) {
-    if (element.renderObject is RenderBox && (element.renderObject as RenderBox).hasSize) {
-      var offset = (element.renderObject as RenderBox).localToGlobal(Offset.zero);
-      var widget = element.widget.runtimeType;
-      var size = (element.renderObject as RenderBox).size;
-      var depth = element.depth;  // 树的高度
-      var spaces = ' ' * depth * 1;
-      print("$spaces depth = $depth widget = $widget, render size = $size, offset = $offset");
-    }
-    element.visitChildren(visitorChildRenderObject);
-  }
-  WidgetsBinding.instance.rootElement?.visitChildren(visitorChildRenderObject);
-}
-
-List<Map<int, List<String>>> globalArray = [];
-
-void rootElementTree() {
-  visitorChildRenderObject(Element element) {
-    if (element.renderObject is RenderBox && (element.renderObject as RenderBox).hasSize) {
-      List<String> list = [];
-      var depth = element.depth;  // 树的高度
-      list.add((element.renderObject as RenderBox).localToGlobal(Offset.zero).toString()); // [0]
-      list.add(element.widget.runtimeType.toString()); // [1]
-      list.add((element.renderObject as RenderBox).size.toString()); // [2]
-      // todo 给存map里去
-      bool isExit = false;
-      if(globalArray.isNotEmpty) {
-        for(Map<int, List<String>> map in globalArray) {
-          if(map.containsKey(depth)) {
-            // 当前map已经存在，去下一个map看看
-          } else {  // 不存在直接存
-            map[depth] = list;
-            isExit = true;
-            break;
-          }
-        }
-      }
-
-      if(!isExit) {  // 数组中任何一个map都没有-> 在globalArray中新开一个map存
-        globalArray.add({
-          depth: list
-        });
-      }
-
-      var spaces = ' ' * depth * 1;
-      print("$spaces depth = $depth widget = ${list[1]}, render size = ${list[2]}, offset = ${list[0]}");
-    }
-    element.visitChildren(visitorChildRenderObject);
-  }
-  WidgetsBinding.instance.rootElement?.visitChildren(visitorChildRenderObject);
-  print("over-over-over!!!");
+  printTree(tree);
 }
